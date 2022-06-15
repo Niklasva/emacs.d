@@ -1,5 +1,3 @@
-* Niklas personal emacs configuration
-
-[[./config.org][config.org]]
+* [[./config.org][config.org]]
 
 
