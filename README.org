@@ -1,0 +1,6 @@
+* Niklas personal emacs configuration
+
+#+begin_src org
+[[../config.org][config.org]]
+#+end_src
+
