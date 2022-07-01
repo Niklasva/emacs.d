@@ -60,14 +60,28 @@
 ** Installing use-package
 
 #+begin_src emacs-lisp
-  ;; Initialize use-package on non-Linux platforms
+;; Initialize use-package on non-Linux platforms
   (unless (package-installed-p 'use-package)
     (package-install 'use-package))
 
   (require 'use-package)
   (setq use-package-always-ensure t)
 
+(defvar bootstrap-version)
+(let ((bootstrap-file
+      (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+            (bootstrap-version 5))
+              (unless (file-exists-p bootstrap-file)
+                  (with-current-buffer
+                          (url-retrieve-synchronously
+                                  "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+                                          'silent 'inhibit-cookies)
+                                                (goto-char (point-max))
+                                                      (eval-print-last-sexp)))
+                                                        (load bootstrap-file nil 'nomessage))
+
 #+end_src
+#
 
 * Text edit settings
 
@@ -85,15 +99,17 @@
 
   (column-number-mode)
 
+  (use-package transpose-frame)
+
   ;; Enable line numbers for some modes
   (dolist (mode '(text-mode-hook
-                                  prog-mode-hook
-                                  conf-mode-hook))
-      (add-hook mode (lambda () (display-line-numbers-mode 1))))
+                  prog-mode-hook
+                  conf-mode-hook))
+    (add-hook mode (lambda () (display-line-numbers-mode 1))))
 
   ;; Override some modes which derive from the above
   (dolist (mode '(org-mode-hook))
-      (add-hook mode (lambda () (display-line-numbers-mode 0))))
+    (add-hook mode (lambda () (display-line-numbers-mode 0))))
 
 
   ;; Makes *scratch* empty.
@@ -101,8 +117,8 @@
 
   ;; Removes *scratch* from buffer after the mode has been set.
   (defun remove-scratch-buffer ()
-      (if (get-buffer "*scratch*")
-              (kill-buffer "*scratch*")))
+    (if (get-buffer "*scratch*")
+        (kill-buffer "*scratch*")))
   (add-hook 'after-change-major-mode-hook 'remove-scratch-buffer)
 
   ;; Removes *messages* from the buffer.
@@ -111,10 +127,10 @@
 
   ;; Removes *Completions* from buffer after you've opened a file.
   (add-hook 'minibuffer-exit-hook
-                      '(lambda ()
-                           (let ((buffer "*Completions*"))
-                               (and (get-buffer buffer)
-                                          (kill-buffer buffer)))))
+            '(lambda ()
+               (let ((buffer "*Completions*"))
+                 (and (get-buffer buffer)
+                      (kill-buffer buffer)))))
 
   ;; Don't show *Buffer list* when opening multiple files at the same time.
   (setq inhibit-startup-buffer-menu t)
@@ -127,6 +143,10 @@
   (fset 'yes-or-no-p 'y-or-n-p)
 
 
+  ;; Always move cursor to help window
+  (setq help-window-select t)
+
+#+end_src
 
 #+end_src
 
@@ -144,6 +164,7 @@ Download theme packages in this block.
 #+begin_src emacs-lisp
   (use-package doom-themes
     :ensure t)
+
 #+end_src
 
 Set theming configs.
@@ -156,7 +177,18 @@ Set theming configs.
 Set theme.
 
 #+begin_src emacs-lisp
-  (load-theme 'doom-city-lights t)
+  (use-package autothemer :ensure t)
+
+  (straight-use-package
+   '(rose-pine-emacs
+     :host github
+     :repo "thongpv87/rose-pine-emacs"
+     :branch "master"))
+    #+end_src
+
+#+begin_src emacs-lisp
+  (setq custom-safe-themes t)
+  (load-theme 'doom-ayu-mirage t)
 #+end_src
 
 ** GUI settings
@@ -186,6 +218,12 @@ Prevent accidental close.
 
 #+begin_src emacs-lisp
   (setq confirm-kill-emacs 'y-or-n-p)
+#+end_src
+
+#+begin_src emacs-lisp
+  (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
+  (add-to-list 'default-frame-alist '(ns-appearance . dark))
+  (setq frame-resize-pixelwise t)
 #+end_src
 
 ** Mode line
@@ -218,15 +256,44 @@ Prevent accidental close.
 
 ** Font
 
+Only use variable-pitch if explicitly called.
 #+begin_src emacs-lisp
+  (defun variable-pitch-on ()
+    (interactive)
+    (set-face-attribute 'variable-pitch nil :font "CMU Serif 16" :inherit 'default))
+#+end_src
 
-  (set-face-attribute 'default nil :font "Mononoki 16")
-  (set-face-attribute 'fixed-pitch nil :font "Mononoki 16" :height 1.0)
-
-  (set-face-attribute 'variable-pitch nil :font "CMU Serif" :height 1.0 :weight 'regular)
+#+begin_src emacs-lisp
+  (set-face-attribute 'default nil :font "Iosevka 16")
+  (set-face-attribute 'fixed-pitch nil :font "Iosevka 16" :height 1.0)
+  (set-face-attribute 'variable-pitch nil :font "Iosevka 16" :height 1.0)
 
   (when (eq (nth 3 (assq 'geometry (car (display-monitor-attributes-list)))) 3840)
     (set-face-attribute 'default nil :font "Mononoki 18"))
+
+  ;(variable-pitch-on)
+
+#+end_src
+
+** Dashboard
+#+begin_src emacs-lisp
+  (use-package dashboard
+    :init
+    (add-hook 'after-init-hook 'dashboard-refresh-buffer)
+    :config
+    ;(setq dashboard-startup-banner '"~/.config/emacs/files/gnu.png")
+    ;(setq dashboard-startup-banner '"~/.config/emacs/files/rms.png")
+    (setq dashboard-set-navigator t)
+    (setq dashboard-set-footer nil)
+    (setq dashboard-items '((recents  . 5) (bookmarks . 5) (agenda . 5)))
+    (setq dashboard-center-content nil)
+    (setq dashboard-filter-agenda-entry 'dashboard-no-filter-agenda)
+    (dashboard-setup-startup-hook)
+    (global-unset-key [tab])
+    (global-unset-key (kbd "C-e"))
+    )
+  (set-face-attribute 'dashboard-items-face nil :inherit 'default)
+  (set-face-attribute 'dashboard-heading-face nil :inherit 'default)
 #+end_src
 
 * Controls
@@ -257,28 +324,7 @@ Prevent accidental close.
 
 #+end_src
 
-* Dashboard
-#+begin_src emacs-lisp
-  (use-package dashboard
-    :init
-    (add-hook 'after-init-hook 'dashboard-refresh-buffer)
-    :config
-    ;(setq dashboard-startup-banner '"~/.config/emacs/files/gnu.png")
-    ;(setq dashboard-startup-banner '"~/.config/emacs/files/rms.png")
-    (setq dashboard-set-navigator t)
-    (setq dashboard-set-footer nil)
-    (setq dashboard-items '((recents  . 5) (bookmarks . 5) (agenda . 5)))
-    (setq dashboard-center-content nil)
-    (setq dashboard-filter-agenda-entry 'dashboard-no-filter-agenda)
-    (dashboard-setup-startup-hook)
-    (global-unset-key [tab])
-    (global-unset-key (kbd "C-e"))
-    )
-  (set-face-attribute 'dashboard-items-face nil :inherit 'default)
-  (set-face-attribute 'dashboard-heading-face nil :inherit 'default)
-#+end_src
-
-* Keybindings
+** Keybindings
 
 #+begin_src emacs-lisp
   (global-set-key (kbd "C-+") 'text-scale-increase)
@@ -295,9 +341,16 @@ Prevent accidental close.
   (global-set-key (kbd "<C-tab>") 'evil-next-buffer)
   (global-set-key (kbd "<C-S-tab>") 'evil-prev-buffer)
 
+
   (define-key evil-normal-state-map (kbd "C-a C-e") 'treemacs-select-window)
+
   (define-key evil-normal-state-map (kbd "C-a C-x") 'evil-delete-buffer)
   (define-key help-mode-map (kbd "C-a C-x") 'evil-delete-buffer)
+
+  (define-key evil-normal-state-map (kbd "C-w -") 'evil-window-split)
+  (define-key evil-normal-state-map (kbd "C-w |") 'evil-window-vsplit)
+  (define-key evil-normal-state-map (kbd "C-w SPC") 'transpose-frame)
+
 
   (evil-define-key 'treemacs treemacs-mode-map (kbd "C-a C-x")    #'evil-delete-buffer)
   (evil-define-key 'treemacs treemacs-mode-map (kbd "C-a C-e")    #'evil-delete-buffer)
@@ -432,7 +485,7 @@ simpleclip-mode radically simplifies clipboard handling: the system clipboard an
   (set-default 'tramp-default-method "plink")
 #+end_src
 
-* File manager
+* File management
 ** Treemacs
 #+begin_src emacs-lisp
   (use-package treemacs
@@ -504,7 +557,6 @@ simpleclip-mode radically simplifies clipboard handling: the system clipboard an
   (add-hook 'dired-mode-hook 'all-the-icons-dired-mode)
 #+end_src
 
-* Files
 ** File-related keybindings
 #+begin_src emacs-lisp
   (nvmap :states '(normal visual) :keymaps 'override :prefix "SPC"
@@ -546,19 +598,15 @@ simpleclip-mode radically simplifies clipboard handling: the system clipboard an
   (global-set-key "\C-x\ \C-r" 'recentf-open-files)
 #+end_src
 
-* Org-mode
-#+begin_src emacs-lisp
-  (defun org-mode-setup ()
-    (org-indent-mode)
-    (variable-pitch-mode 1)
-    (auto-fill-mode 0)
-    (visual-line-mode 1)
-    (org-num-mode 1)
-    (setq evil-auto-indent nil))
+** Other
 
-  (require 'org-inlinetask)
+Always follow symlinks
+
+#+begin_src emacs-lisp
+  (setq vc-follow-symlinks t)
 #+end_src
 
+* Org-mode
 ** Org-mode appearance
 *** Org-todo
 #+begin_src emacs-lisp
@@ -568,6 +616,7 @@ simpleclip-mode radically simplifies clipboard handling: the system clipboard an
 *** Fonts
 #+begin_src emacs-lisp
   (defun org-font-setup ()
+    (interactive)
     ;; Replace list hyphen with dot
     (font-lock-add-keywords 'org-mode
                             '(("^ *\\([-]\\) "
@@ -604,45 +653,48 @@ simpleclip-mode radically simplifies clipboard handling: the system clipboard an
     (text-mode . mixed-pitch-mode))
 #+end_src
 
-*** Ellipsis
+
+*** TeX style
+#+begin_src emacs-lisp
+  (defun org-tex-style()
+    (interactive)
+    (setq org-hidden-keywords '(title))
+
+    (set-face-attribute 'org-document-title nil
+                        :height 2.0
+                        :weight 'regular
+                        :inherit 'default
+                        :foreground nil
+                        )
+
+    ;; set basic title font
+    (set-face-attribute 'org-level-8 nil :weight 'bold :inherit 'default)
+    ;; Low levels are unimportant = no scalinkjukjg
+    (set-face-attribute 'org-level-7 nil :inherit 'org-level-8)
+    (set-face-attribute 'org-level-6 nil :inherit 'org-level-8)
+    (set-face-attribute 'org-level-5 nil :inherit 'org-level-8)
+    (set-face-attribute 'org-level-4 nil :inherit 'org-level-8)
+    ;; Top ones get scaled the same as in LaTeX (\large, \Large, \LARGE)
+    (set-face-attribute 'org-level-3 nil :inherit 'org-level-8 :height 1.2 :weight 'bold) ;\large
+    (set-face-attribute 'org-level-2 nil :inherit 'org-level-8 :height 1.4 :weight 'bold) ;\Large
+    (set-face-attribute 'org-level-1 nil :inherit 'org-level-8 :height 1.5 :weight 'bold) ;\LARGE
+    ;; Only use the first 4 styles and do not cycle.
+    (setq org-cycle-level-faces nil)
+    (setq org-n-level-faces 4)
+    (variable-pitch-mode 1)
+    (variable-pitch-on)
+    )
+
+#+end_src
+
+** Set up
 #+begin_src emacs-lisp
   (use-package org
     :hook (org-mode . org-mode-setup)
     :config
     (setq org-ellipsis " .."
           org-hide-emphasis-markers t)
-    (org-font-setup))
-#+end_src
-
-*** TeX style
-#+begin_src emacs-lisp
-  ;; hide #+TITLE:
-  (setq org-hidden-keywords '(title))
-
-  (set-face-attribute 'org-document-title nil
-                      :height 2.0
-                      :weight 'regular
-                      :inherit 'default
-                      :foreground nil
-                      )
-
-  ;; set basic title font
-  (set-face-attribute 'org-level-8 nil :weight 'bold :inherit 'default)
-  ;; Low levels are unimportant => no scalinkjukjg
-  (set-face-attribute 'org-level-7 nil :inherit 'org-level-8)
-  (set-face-attribute 'org-level-6 nil :inherit 'org-level-8)
-  (set-face-attribute 'org-level-5 nil :inherit 'org-level-8)
-  (set-face-attribute 'org-level-4 nil :inherit 'org-level-8)
-  ;; Top ones get scaled the same as in LaTeX (\large, \Large, \LARGE)
-  (set-face-attribute 'org-level-3 nil :inherit 'org-level-8 :height 1.2 :weight 'bold) ;\large
-  (set-face-attribute 'org-level-2 nil :inherit 'org-level-8 :height 1.4 :weight 'bold) ;\Large
-  (set-face-attribute 'org-level-1 nil :inherit 'org-level-8 :height 1.5 :weight 'bold) ;\LARGE
-  ;; Only use the first 4 styles and do not cycle.
-  (setq org-cycle-level-faces nil)
-  (setq org-n-level-faces 4)
-
-               ;;; Basic Setup
-  ;; Auto-start Superstar with Org
+    )
   (add-hook 'org-mode-hook
             (lambda ()
               (org-superstar-mode 1)))
@@ -656,6 +708,16 @@ simpleclip-mode radically simplifies clipboard handling: the system clipboard an
   (setq org-indent-mode-turns-on-hiding-stars nil)
   (setq org-superstar-headline-bullets-list '("·"))
 
+  (defun org-mode-setup ()
+    (org-indent-mode)
+    (auto-fill-mode 0)
+    (visual-line-mode 1)
+    (org-num-mode 1)
+    (variable-pitch-mode nil)
+    (setq evil-auto-indent nil)
+    (require 'org-inlinetask)
+    ;(org-tex-style)
+    )
 #+end_src
 
 *** Column width
@@ -670,7 +732,7 @@ simpleclip-mode radically simplifies clipboard handling: the system clipboard an
 
   (use-package visual-fill-column
     :hook (org-mode . org-mode-visual-fill))
-            #+end_src
+#+end_src
 
 *** org-tempo
 #+begin_src emacs-lisp
@@ -687,6 +749,7 @@ simpleclip-mode radically simplifies clipboard handling: the system clipboard an
 #+end_src
 
 * Term mode
+
 #+begin_src emacs-lisp
   (defadvice ansi-term (after advice-term-line-mode activate)
     (term-char-mode)
@@ -720,14 +783,12 @@ simpleclip-mode radically simplifies clipboard handling: the system clipboard an
     "n" 'multi-term-next
     "p" 'multi-term-prev)
 
+  (defun my-term-handle-exit (&optional process-name msg)
+    (message "%s | %s" process-name msg)
+    (kill-buffer (current-buffer)))
 
-                                          ;  (add-hook 'term-mode-hook 'term-char-mode)
-#+end_src
+  (advice-add 'term-handle-exit :after 'my-term-handle-exit)
 
-* General settings
-Always follow symlinks
-#+begin_src emacs-lisp
-  (setq vc-follow-symlinks t)
 #+end_src
 
 #+begin_src emacs-lisp
@@ -740,14 +801,3 @@ Always follow symlinks
 
 #+end_src
 
-Always move cursor to help window
-#+begin_src emacs-lisp
-  (setq help-window-select t)
-
-#+end_src
-
-** Font settings
-#+begin_src emacs-lisp
-  (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
-  (add-to-list 'default-frame-alist '(ns-appearance . dark))
-#+end_src
