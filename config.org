@@ -3,21 +3,14 @@
 
 * Pre-init
 #+STARTUP: summary
-** Remember window
-
+** Startup garbage collection
 
 #+begin_src emacs-lisp
-;; Minimize garbage collection during startup
 (setq gc-cons-threshold most-positive-fixnum)
-
-;; Lower threshold back to 8 MiB (default is 800kB)
-(add-hook 'emacs-startup-hook
-          (lambda ()
-
-
-            (setq gc-cons-threshold (expt 2 23))))
+(add-hook 'emacs-startup-hook (lambda () (setq gc-cons-threshold (expt 2 23))))
 #+end_src
 
+** Remember window
 
 #+begin_src emacs-lisp
   ;; Custom functions/hooks for persisting/loading frame geometry upon save/load
@@ -53,14 +46,10 @@
         (load-file frameg-file))))
 
   ; Special work to do ONLY when there is a window system being used
-  (if window-system
-      (progn
+  (if window-system (progn
         (add-hook 'after-init-hook 'load-frameg)
         (add-hook 'kill-emacs-hook 'save-frameg)))
 #+end_src
-
-#+RESULTS:
-: load-frameg
 
 * Package management
 ** Setup package.el to work with melpa.
@@ -85,21 +74,20 @@
   (require 'use-package)
   (setq use-package-always-ensure t)
 
-
 #+end_src
 
 * Text edit settings
 
 #+Begin_src emacs-lisp
-  (setq-default indent-tabs-mode nil)
-  (setq-default tab-width 4)
-  (setq-default c-default-style "linux")
-  (setq-default c-basic-offset 4)
-  (setq-default evil-auto-indent nil)
+  (setq-default indent-tabs-mode nil
+                tab-width 4
+                c-default-style "linux"
+                c-basic-offset 4
+                evil-auto-indent nil
 
-  (setq-default indent-tabs-mode nil)
-  (setq-default indent-line-function 'insert-tab)
-  (setq-default show-trailing-whitespace t)
+                indent-tabs-mode nil
+                indent-line-function 'insert-tab
+                show-trailing-whitespace t)
 
   (column-number-mode)
 
@@ -115,10 +103,6 @@
   (dolist (mode '(org-mode-hook))
     (add-hook mode (lambda () (display-line-numbers-mode 0))))
 
-
-  ;; Makes *scratch* empty.
-  (setq initial-scratch-message "")
-
   ;; Removes *scratch* from buffer after the mode has been set.
   (defun remove-scratch-buffer ()
     (if (get-buffer "*scratch*")
@@ -127,7 +111,6 @@
   (add-hook 'after-change-major-mode-hook 'remove-scratch-buffer)
 
   (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
-
 
   ;; Removes *messages* from the buffer.
   (defun remove-messages-buffer ()
@@ -142,9 +125,7 @@
   ;; Show only one active window when opening multiple files at the same time.
   (add-hook 'window-setup-hook 'delete-other-windows)
 
-  ;; No more typing the whole yes or no. Just y or n will do.
   (fset 'yes-or-no-p 'y-or-n-p)
-
 
   ;; Always move cursor to help window
   (setq help-window-select t)
@@ -160,32 +141,20 @@ Prevent emacs from contaminating system clipboard.
 * Customization
 ** Theme
 
-Download theme packages in this block.
-
 #+begin_src emacs-lisp
-  (use-package doom-themes
-    :ensure t)
+  (use-package doom-themes :ensure t)
 
-#+end_src
-
-Set theme.
-
-#+begin_src emacs-lisp
   (setq custom-safe-themes t)
   (load-theme 'doom-gruvbox t)
 #+end_src
 
-
 ** GUI settings
-
-For AHK, enable mac-style copy and paste in windows.
 
 #+begin_src emacs-lisp
   (setq frame-title-format '("" "%b"))
-#+end_src
 
-#+begin_src emacs-lisp
-  (setq inhibit-startup-message t)
+  (setq inhibit-startup-message t
+        inhibit-startup-echo-area-message t)
 
   (scroll-bar-mode -1)
   (tool-bar-mode -1)
@@ -194,12 +163,6 @@ For AHK, enable mac-style copy and paste in windows.
   (set-fringe-mode 10)
 
   (global-visual-line-mode t)
-
-
-
-  (setq inhibit-startup-message t
-        inhibit-startup-echo-area-message t)
-
 
 #+end_src
 
@@ -216,27 +179,57 @@ Prevent accidental close.
 #+end_src
 
 ** Mode line
-Save colors for later use.
 
+Save colors for later use.
 #+begin_src emacs-lisp
-(defun set-ansi-colors ()
-  (setq ansi-black          (face-attribute 'ansi-color-black :background))
-  (setq ansi-bright-black   (face-attribute 'ansi-color-bright-black :background))
-  (setq ansi-blue           (face-attribute 'ansi-color-blue :background))
-  (setq ansi-bright-blue    (face-attribute 'ansi-color-bright-blue :background))
-  (setq ansi-cyan           (face-attribute 'ansi-color-cyan :background))
-  (setq ansi-bright-cyan    (face-attribute 'ansi-color-bright-cyan :background))
-  (setq ansi-green          (face-attribute 'ansi-color-green :background))
-  (setq ansi-bright-green   (face-attribute 'ansi-color-bright-green :background))
-  (setq ansi-magenta        (face-attribute 'ansi-color-magenta :background))
-  (setq ansi-bright-magenta (face-attribute 'ansi-color-bright-magenta :background))
-  (setq ansi-red            (face-attribute 'ansi-color-red :background))
-  (setq ansi-bright-red     (face-attribute 'ansi-color-bright-red :background))
-  (setq ansi-white          (face-attribute 'ansi-color-white :background))
-  (setq ansi-bright-white   (face-attribute 'ansi-color-bright-white :background))
-  (setq ansi-yellow         (face-attribute 'ansi-color-yellow :background))
-  (setq ansi-bright-yellow  (face-attribute 'ansi-color-bright-yellow :background))
-  )
+  (defun set-ansi-colors ()
+    (setq ansi-black
+          (face-attribute 'ansi-color-black :background)
+
+          ansi-bright-black
+          (face-attribute 'ansi-color-bright-black :background)
+
+          ansi-blue
+          (face-attribute 'ansi-color-blue :background)
+
+          ansi-bright-blue
+          (face-attribute 'ansi-color-bright-blue :background)
+
+          ansi-cyan
+          (face-attribute 'ansi-color-cyan :background)
+
+          ansi-bright-cyan
+          (face-attribute 'ansi-color-bright-cyan :background)
+
+          ansi-green
+          (face-attribute 'ansi-color-green :background)
+
+          ansi-bright-green
+          (face-attribute 'ansi-color-bright-green :background)
+
+          ansi-magenta
+          (face-attribute 'ansi-color-magenta :background)
+
+          ansi-bright-magenta
+          (face-attribute 'ansi-color-bright-magenta :background)
+
+          ansi-red
+          (face-attribute 'ansi-color-red :background)
+
+          ansi-bright-red
+          (face-attribute 'ansi-color-bright-red :background)
+
+          ansi-white
+          (face-attribute 'ansi-color-white :background)
+
+          ansi-bright-white
+          (face-attribute 'ansi-color-bright-white :background)
+
+          ansi-yellow
+          (face-attribute 'ansi-color-yellow :background)
+
+          ansi-bright-yellow
+          (face-attribute 'ansi-color-bright-yellow :background)))
 #+end_src
 
 #+Begin_src emacs-lisp
@@ -254,15 +247,14 @@ Save colors for later use.
      '(doom-modeline ((t (:font "Iosevka Light" :height 0.9))))
      '(doom-modeline-inactive ((t (:font "Iosevka Light" :height 0.9)))))
 
-    (setq
-     evil-normal-state-tag "⬤"
-     evil-insert-state-tag "⬤"
-     evil-visual-state-tag "⬤"
-     evil-replace-state-tag "⬤"
-     evil-operator-state-tag "⬤")
+    (setq evil-normal-state-tag "NORMAL"
+          evil-insert-state-tag "INSERT"
+          evil-visual-state-tag "VISUAL"
+          evil-replace-state-tag "REPLACE"
+          evil-operator-state-tag "OPERATOR")
 
-    (setq doom-modeline-icon nil)
-    (setq doom-modeline-height 1))
+    (setq doom-modeline-icon nil
+          doom-modeline-height 1))
 
 
 #+end_src
@@ -278,59 +270,38 @@ Only use variable-pitch if explicitly called.
 #+end_src
 
 #+begin_src emacs-lisp
-  (set-face-attribute 'default nil :font "Mononoki 16")
-  (set-face-attribute 'fixed-pitch nil :font "Mononoki 16" :height 1.0)
+  (set-face-attribute 'default nil        :font "Mononoki 16")
+  (set-face-attribute 'fixed-pitch nil    :font "Mononoki 16" :height 1.0)
   (set-face-attribute 'variable-pitch nil :font "Mononoki 16" :height 1.0)
 
   (when (eq (nth 3 (assq 'geometry (car (display-monitor-attributes-list)))) 3840)
     (set-face-attribute 'default nil :font "Mononoki 18"))
 
-  (setq doom-themes-enable-bold t)
-  (setq doom-themes-enable-italic t)
+  (setq doom-themes-enable-bold t
+        doom-themes-enable-italic t)
+
   (variable-pitch-on)
-#+end_src
-
-*** Daemon fonts
-
-#+begin_src emacs-lisp
-  (defun set-custom-fonts (frame)
-    (set-face-attribute 'default nil :font "Mononoki 16")
-    (set-face-attribute 'fixed-pitch nil :font "Mononoki 16" :height 1.0)
-    (set-face-attribute 'variable-pitch nil :font "Mononoki 16" :height 1.0)
-
-    (when (eq (nth 3 (assq 'geometry (car (display-monitor-attributes-list)))) 3840)
-      (set-face-attribute 'default nil :font "Mononoki 18"))
-
-    (setq doom-themes-enable-bold t)
-    (setq doom-themes-enable-italic t))
-
-  (add-hook 'after-make-frame-functions 'set-custom-fonts)
-
 #+end_src
 
 ** Dashboard
 #+begin_src emacs-lisp
   (use-package dashboard
     :init
-    ;(add-hook 'after-init-hook 'dashboard-refresh-buffer)
     :config
-    (setq dashboard-banner-logo-title "Emacs")
-                                          ;(setq dashboard-startup-banner '"~/.config/emacs/files/gnu.png")
-    (setq dashboard-startup-banner 4)
-    (setq dashboard-set-navigator t)
-    (setq dashboard-set-footer nil)
-; (setq dashboard-items '((bookmarks . 5) (recents  . 6) (agenda . 5)))
-    (setq dashboard-items '((bookmarks . 5) (recents  . 6)))
-    (setq dashboard-center-content t)
-    (setq dashboard-filter-agenda-entry 'dashboard-no-filter-agenda)
+    (setq dashboard-banner-logo-title "Emacs"
+          dashboard-startup-banner 4
+          dashboard-set-navigator t
+          dashboard-set-footer nil
+          dashboard-items '((bookmarks . 5) (recents  . 6))
+          dashboard-center-content t
+          dashboard-filter-agenda-entry 'dashboard-no-filter-agenda)
     (dashboard-setup-startup-hook)
 
     (global-unset-key [tab])
-    (global-unset-key (kbd "C-e"))
-    )
+    (global-unset-key (kbd "C-e")))
+
   (set-face-attribute 'dashboard-items-face nil :inherit 'default)
   (set-face-attribute 'dashboard-heading-face nil :inherit 'default)
-
 #+end_src
 
 ** Centaur Tabs
@@ -340,11 +311,9 @@ Only use variable-pitch if explicitly called.
     :demand
     :config
     (centaur-tabs-mode t)
-
     :bind
     ("C-<tab>" . centaur-tabs-forward)
-    ("C-S-<tab>" . centaur-tabs-backward)
-    )
+    ("C-S-<tab>" . centaur-tabs-backward))
 
 
 
@@ -395,12 +364,13 @@ Only use variable-pitch if explicitly called.
 #+begin_src emacs-lisp
   (use-package evil
     :init
-    (setq evil-want-integration t)
-    (setq evil-want-keybinding nil)
-    (setq evil-vsplit-window-right t)
-    (setq evil-split-window-below t)
-    (setq evil-want-C-u-scroll t)
-    (setq evil-undo-system 'undo-redo)
+    (setq evil-want-integration t
+          evil-want-keybinding nil
+          evil-vsplit-window-right t
+          evil-split-window-below t
+          evil-want-C-u-scroll t
+          evil-undo-system 'undo-redo)
+
     (evil-mode))
 
 #+end_src
@@ -420,6 +390,11 @@ Only use variable-pitch if explicitly called.
 ** Keybindings
 
 #+begin_src emacs-lisp
+
+  (setq mac-option-modifier nil
+        mac-escape-modifier nil
+        mac-right-command-modifier 'meta)
+
   (global-set-key (kbd "C-+") 'text-scale-increase)
   (global-set-key (kbd "C--") 'text-scale-decrease)
   (global-set-key (kbd "C-=") 'text-scale-set)
@@ -427,13 +402,7 @@ Only use variable-pitch if explicitly called.
   (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
   (global-set-key (kbd "§") 'evil-invert-char)
 
-  (setq mac-option-modifier nil)
-  (setq mac-escape-modifier nil)
-  (setq mac-right-command-modifier 'meta)
   (define-key evil-normal-state-map (kbd "U") 'evil-redo)
-  ;(global-set-key (kbd "<C-tab>") 'evil-next-buffer)
-  ;(global-set-key (kbd "<C-S-tab>") 'evil-prev-buffer)
-
 
   (define-key evil-normal-state-map (kbd "C-a C-e") 'treemacs-select-window)
 
@@ -530,37 +499,37 @@ simpleclip-mode radically simplifies clipboard handling: the system clipboard an
 ** ivy + counsel
 
 #+begin_src emacs-lisp
-;   (use-package counsel
-;     :after ivy
-;     :config (counsel-mode))
-; 
-;   (use-package ivy
-;     :defer 0.1
-;     :diminish
-;     :bind
-;     (("C-c C-r" . ivy-resume)
-;      ("C-x B" . ivy-switch-buffer-other-window))
-;     :custom
-;     (setq ivy-count-format "(%d/%d) ")
-;     (setq ivy-use-virtual-buffers t)
-;     (setq enable-recursive-minibuffers t)
-;     :config
-;     (ivy-mode))
-; 
-;   (use-package ivy-rich
-;     :after ivy
-;     :custom
-;     (ivy-virtual-abbreviate 'full
-;                             ivy-rich-switch-buffer-align-virtual-buffer t
-;                             ivy-rich-path-style 'abbrev)
-;     :config
-;     (ivy-set-display-transformer 'ivy-switch-buffer
-;                                  'ivy-rich-switch-buffer-transformer)
-;     (ivy-rich-mode 1)) ;; this gets us descriptions in M-x.
-;   (use-package swiper
-;     :after ivy
-;     :bind (("C-s" . swiper)
-;            ("C-r" . swiper)))
+   (use-package counsel
+     :after ivy
+     :config (counsel-mode))
+
+   (use-package ivy
+     :defer 0.1
+     :diminish
+     :bind
+     (("C-c C-r" . ivy-resume)
+      ("C-x B" . ivy-switch-buffer-other-window))
+     :custom
+     (setq ivy-count-format "(%d/%d) ")
+     (setq ivy-use-virtual-buffers t)
+     (setq enable-recursive-minibuffers t)
+     :config
+     (ivy-mode))
+
+   (use-package ivy-rich
+     :after ivy
+     :custom
+     (ivy-virtual-abbreviate 'full
+                             ivy-rich-switch-buffer-align-virtual-buffer t
+                             ivy-rich-path-style 'abbrev)
+     :config
+     (ivy-set-display-transformer 'ivy-switch-buffer
+                                  'ivy-rich-switch-buffer-transformer)
+     (ivy-rich-mode 1)) ;; this gets us descriptions in M-x.
+   (use-package swiper
+     :after ivy
+     :bind (("C-s" . swiper)
+            ("C-r" . swiper)))
 #+end_src
 
 ** m-x
@@ -584,23 +553,15 @@ simpleclip-mode radically simplifies clipboard handling: the system clipboard an
     :ensure t
     :config
     (progn
-      (setq treemacs-text-scale 0.1)
-      (setq treemacs-width 30)
-      (setq treemacs-show-hidden-files nil)
-      (setq treemacs-indentation-string "  ")
-      (setq treemacs-no-png-images t)
+      (setq treemacs-text-scale 0.1
+            treemacs-width 30
+            treemacs-show-hidden-files nil
+            treemacs-indentation-string "  "
+            treemacs-no-png-images t)
       ))
 
   (use-package treemacs-evil
     :after (treemacs evil)
-    :ensure t)
-
-;   (use-package treemacs-projectile
-;     :after (treemacs projectile)
-;     :ensure t)
-
-  (use-package treemacs-icons-dired
-    :hook (dired-mode . treemacs-icons-dired-enable-once)
     :ensure t)
 
   (use-package treemacs-magit
@@ -617,19 +578,12 @@ simpleclip-mode radically simplifies clipboard handling: the system clipboard an
     :ensure t
     :config (treemacs-set-scope-type 'Tabs))
 
-  ; (use-package treemacs-all-the-icons
-  ;   :after (treemacs)
-  ;   :ensure t
-  ;   :config (treemacs-load-theme "All the icons")
-  ;   )
-  ; (treemacs-load-all-the-icons-with-workaround-font "Hermit")
-
 #+end_src
 
 ** Dired
 
 #+begin_src emacs-lisp
-  (use-package all-the-icons-dired)
+;  (use-package all-the-icons-dired)
   (use-package dired-open)
   (use-package peep-dired)
 
@@ -645,7 +599,6 @@ simpleclip-mode radically simplifies clipboard handling: the system clipboard an
     (evil-define-key 'normal peep-dired-mode-map (kbd "k") 'peep-dired-prev-file))
 
   (add-hook 'peep-dired-hook 'evil-normalize-keymaps)
-  (add-hook 'dired-mode-hook 'all-the-icons-dired-mode)
 #+end_src
 
 ** File-related keybindings
@@ -674,23 +627,7 @@ simpleclip-mode radically simplifies clipboard handling: the system clipboard an
   (setq backup-directory-alist '(("." . "~/.config/emacs/saves")))
 #+end_src
 
-# * vterm
-
-## +begin_src emacs-lisp
-#  (use-package vterm :ensure t)
-## +end_src
-
-** Recent files
-
-#+begin_src emacs-lisp
-   (recentf-mode nil)
-   (setq recentf-max-menu-items 5)
-   (setq recentf-max-saved-items 5)
-   (global-set-key "\C-x\ \C-r" 'recentf-open-files)
-#+end_src
-
 ** Other
-
 Always follow symlinks
 
 #+begin_src emacs-lisp
@@ -699,50 +636,14 @@ Always follow symlinks
 
 * Org-mode
 ** Org-mode appearance
-*** Org-todo
-#+begin_src emacs-lisp
-  ;(set-face-attribute 'org-done nil :foreground "PaleGreen4")
-#+end_src
-
-*** Fonts
-#+begin_src emacs-lisp
-  (defun org-font-setup ()
-    (interactive)
-    ;; Replace list hyphen with dot
-    (font-lock-add-keywords 'org-mode
-                            '(("^ *\\([-]\\) "
-                               (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
-
-    ;; Set faces for heading levels
-    (dolist (face '(
-                    (org-level-1 . 1.1)
-                    (org-level-2 . 1.05)
-                    (org-level-3 . 1.0)
-                    (org-level-4 . 1.0)
-                    (org-level-5 . 1.0)
-                    (org-level-6 . 1.0)
-                    (org-level-7 . 1.0)
-                    (org-level-8 . 1.0)))
-      (set-face-attribute (car face) nil :font "CMU Serif"  :weight 'regular :height (cdr face)))
-
-    ;; Ensure that anything that should be fixed-pitch in Org files appears that way
-    (set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch :height 0.95)
-    (set-face-attribute 'org-code nil   :inherit 'fixed-pitch)
-    (set-face-attribute 'org-table nil   :inherit 'fixed-pitch)
-    (set-face-attribute 'org-verbatim nil :inherit 'fixed-pitch)
-    (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
-    (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
-    (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch)
-    )
-#+end_src
-
-**** Mixed-pitch
+*** Mixed-pitch
 #+begin_src emacs-lisp
   (use-package mixed-pitch
     :hook
-    ;; If you want it in all text modes:
     (text-mode . mixed-pitch-mode))
 #+end_src
+
+*** Font
 
 *** TeX style
 #+begin_src emacs-lisp
@@ -753,7 +654,7 @@ Always follow symlinks
     (set-face-attribute 'org-document-title nil
                         :height 2.0
                         :weight 'regular
-                        :font "CMU Serif" 
+                        :font "CMU Serif"
                         :foreground nil
                         )
 
@@ -785,6 +686,7 @@ Always follow symlinks
     (setq org-ellipsis " .."
           org-hide-emphasis-markers t)
     )
+  (use-package org-superstar)
   (add-hook 'org-mode-hook
             (lambda ()
               (org-superstar-mode 1)))
@@ -836,6 +738,7 @@ Always follow symlinks
   (add-to-list 'org-structure-template-alist '("go" . "src go"))
   (add-to-list 'org-structure-template-alist '("yaml" . "src yaml"))
   (add-to-list 'org-structure-template-alist '("json" . "src json"))
+  (add-to-list 'org-structure-template-alist '("cpp" . "src cpp"))
 #+end_src
 
 * Term mode
@@ -844,13 +747,10 @@ Always follow symlinks
   (setq term-line-mode-buffer-read-only nil)
   (setq term-char-mode-buffer-read-only nil)
 
-
   (defadvice ansi-term (after advice-term-line-mode activate)
-    (term-char-mode)
-    )
+    (term-char-mode))
 
   (defun namespace/show-trailing-whitespace ()
-    "Highlight trailing whitespaces in this buffer."
     (setq-local show-trailing-whitespace nil))
 
   (dolist (hook '(term-mode-hook))
@@ -858,7 +758,6 @@ Always follow symlinks
 
   (dolist (hook '(dashboard-mode-hook))
     (add-hook hook 'namespace/show-trailing-whitespace))
-
 
   (general-create-definer
     ninrod--term-mode
@@ -886,48 +785,51 @@ Always follow symlinks
     (kill-buffer (current-buffer)))
 
   (advice-add 'term-handle-exit :after 'my-term-handle-exit)
-;  (add-hook 'after-init-hook (lambda () (ansi-term "/opt/homebrew/bin/bash")))
-
 
   (xterm-mouse-mode 1)
-#+end_src
-
-#+begin_src emacs-lisp
-;TEST TEST
-    (defun compile-config ()
-      (org-babel-tangle-file
-       (expand-file-name "config.org" user-emacs-directory)
-       (expand-file-name "config.el" user-emacs-directory))
-
-      (byte-compile-file
-       (expand-file-name "config.el" user-emacs-directory)
-       (expand-file-name "config.elc" user-emacs-directory))
-  )
-
-    (add-hook 'kill-emacs-hook 'compile-config)
-
-    (add-to-list 'org-babel-default-header-args
-             '(:noweb . "yes"))
 
 #+end_src
+
 
 
 * Performance
+** Byte compile on exit
+
 #+begin_src emacs-lisp
+
+  (defun compile-config ()
+    (org-babel-tangle-file
+     (expand-file-name "config.org" user-emacs-directory)
+     (expand-file-name "config.el" user-emacs-directory))
+
+    (byte-compile-file
+     (expand-file-name "config.el" user-emacs-directory)
+     (expand-file-name "config.elc" user-emacs-directory)))
+
+  (add-hook 'kill-emacs-hook 'compile-config)
+
+  (add-to-list 'org-babel-default-header-args
+               '(:noweb . "yes"))
+
+#+end_src
+
+** Tweak garbage collection
+#+begin_src emacs-lisp
+
   (defmacro k-time (&rest body)
-  "Measure and return the time it takes evaluating BODY."
-  `(let ((time (current-time)))
-     ,@body
-     (float-time (time-since time))))
+    "Measure and return the time it takes evaluating BODY."
+    `(let ((time (current-time)))
+       ,@body
+       (float-time (time-since time))))
 
-;; Set garbage collection threshold to 1GB.
-(setq gc-cons-threshold #x40000000)
+  ;; Set garbage collection threshold to 1GB.
+  (setq gc-cons-threshold #x40000000)
 
-;; When idle for 15sec run the GC no matter what.
-(defvar k-gc-timer
-  (run-with-idle-timer 15 t
-                       (lambda ()
-                         (message "Garbage Collector has run for %.06fsec"
-                                  (k-time (garbage-collect))))))
+  ;; When idle for 15sec run the GC no matter what.
+  (defvar k-gc-timer
+    (run-with-idle-timer 15 t
+                         (lambda ()
+                           (message "Garbage Collector has run for %.06fsec"
+                                    (k-time (garbage-collect))))))
 
 #+end_src
