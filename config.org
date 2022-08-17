@@ -2,7 +2,7 @@
 #+PROPERTY: header-args :tangle "~/.config/emacs/config.el"
 
 * Pre-init
-#+STARTUP: summary
+#+STARTUP: overview
 ** Startup garbage collection
 
 #+begin_src emacs-lisp
@@ -145,7 +145,7 @@ Prevent emacs from contaminating system clipboard.
   (use-package doom-themes :ensure t)
 
   (setq custom-safe-themes t)
-  (load-theme 'doom-gruvbox t)
+  (load-theme 'doom-city-lights t)
 #+end_src
 
 ** GUI settings
@@ -362,16 +362,17 @@ Only use variable-pitch if explicitly called.
 ** Evil mode
 
 #+begin_src emacs-lisp
-  (use-package evil
-    :init
-    (setq evil-want-integration t
-          evil-want-keybinding nil
-          evil-vsplit-window-right t
-          evil-split-window-below t
-          evil-want-C-u-scroll t
-          evil-undo-system 'undo-redo)
+    (use-package evil
+      :init
+      (setq evil-want-integration t
+            evil-want-keybinding nil
+            evil-vsplit-window-right t
+            evil-split-window-below t
+            evil-want-C-u-scroll t
+            evil-undo-system 'undo-redo)
 
-    (evil-mode))
+      (evil-mode)
+  )
 
 #+end_src
 
@@ -392,14 +393,14 @@ Only use variable-pitch if explicitly called.
 #+begin_src emacs-lisp
 
   (setq mac-option-modifier nil
-        mac-escape-modifier nil
+        Mac-escape-modifier nil
         mac-right-command-modifier 'meta)
 
   (global-set-key (kbd "C-+") 'text-scale-increase)
   (global-set-key (kbd "C--") 'text-scale-decrease)
   (global-set-key (kbd "C-=") 'text-scale-set)
 
-  (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+  ;(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
   (global-set-key (kbd "§") 'evil-invert-char)
 
   (define-key evil-normal-state-map (kbd "U") 'evil-redo)
@@ -601,6 +602,19 @@ simpleclip-mode radically simplifies clipboard handling: the system clipboard an
   (add-hook 'peep-dired-hook 'evil-normalize-keymaps)
 #+end_src
 
+** Projectile
+
+#+begin_src emacs-lisp
+(use-package projectile
+  :ensure t
+  :init
+  (projectile-mode +1)
+  :bind (:map projectile-mode-map
+              ("s-p" . projectile-command-map)
+              ("C-c p" . projectile-command-map)))
+
+#+end_src
+
 ** File-related keybindings
 #+begin_src emacs-lisp
   (nvmap :states '(normal visual) :keymaps 'override :prefix "SPC"
@@ -790,7 +804,25 @@ Always follow symlinks
 
 #+end_src
 
+** ENV
+Get path from shell
+#+begin_src emacs-lisp
+(defun set-exec-path-from-shell-PATH ()
+  "Set up Emacs' `exec-path' and PATH environment variable to match
+that used by the user's shell.
 
+This is particularly useful under Mac OS X and macOS, where GUI
+apps are not started from a shell."
+  (interactive)
+  (let ((path-from-shell (replace-regexp-in-string
+			  "[ \t\n]*$" "" (shell-command-to-string
+					  "$SHELL --login -c 'echo $PATH'"
+						    ))))
+    (setenv "PATH" path-from-shell)
+    (setq exec-path (split-string path-from-shell path-separator))))
+
+(set-exec-path-from-shell-PATH)
+#+end_src
 
 * Performance
 ** Byte compile on exit
@@ -832,4 +864,27 @@ Always follow symlinks
                            (message "Garbage Collector has run for %.06fsec"
                                     (k-time (garbage-collect))))))
 
+#+end_src
+
+* Version control
+** Git gutter
+
+#+begin_src emacs-lisp
+  (use-package git-gutter
+    :ensure t
+    :init
+    (global-git-gutter-mode +1))
+
+#+end_src
+
+* Tools
+** clang-format
+#+begin_src emacs-lisp
+  (use-package clang-format)
+  (setq clang-format-style "file")
+#+end_src
+** Documentation
+*** Mermaid
+#+begin_src emacs-lisp
+  (use-package mermaid-mode)
 #+end_src
